@@ -25,7 +25,7 @@
     </div>
 
     <div class="hero-right">
-      <img class="hero-image fade-in" id="heroImage" src="assets/images/hero/dog-hero.png" alt="Pet Hero" />
+      <img class="hero-image fade-in" id="heroImage" src="assets/images/hero/dog-hero.avif" alt="Pet Hero" />
     </div>
   </div>
 </section>
@@ -35,7 +35,7 @@
 
     <!-- LEFT IMAGE -->
     <div class="founder-image">
-      <img src="assets/images/founder.jpg" alt="Abrar Shaikh">
+      <img src="assets/images/founder.avif" alt="Abrar Shaikh">
     </div>
 
     <!-- RIGHT CONTENT -->

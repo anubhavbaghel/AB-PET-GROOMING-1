@@ -212,7 +212,7 @@
         </button>
 
         <img
-            src="assets/images/qr.png"
+            src="assets/images/qr.avif"
             alt="QR Code"
             class="qr-popup-image"
         >

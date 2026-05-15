@@ -22,7 +22,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">
-                    <div class="logo-box"><img src="../assets/images/logo.png" alt="Logo"></div>
+                    <div class="logo-box"><img src="../assets/images/logo.avif" alt="Logo"></div>
                     <span class="sidebar-logo-text">AB Pet Grooming</span>
                 </div>
             </div>

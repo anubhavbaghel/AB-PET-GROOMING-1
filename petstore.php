@@ -150,28 +150,28 @@ body{
   <div class="petGrid">
 
     <div class="petCard">
-      <img src="assets/images/pets/pet2.jpg">
+      <img src="assets/images/pets/pet2.avif">
       <div class="petInfo">
         <h3>Puppies</h3>
       </div>
     </div>
 
     <div class="petCard">
-      <img src="assets/images/pets/pet1.jpg">
+      <img src="assets/images/pets/pet1.avif">
       <div class="petInfo">
         <h3>Kittens</h3>
       </div>
     </div>
 
     <div class="petCard">
-      <img src="assets/images/pets/pet6.jpg">
+      <img src="assets/images/pets/pet6.avif">
       <div class="petInfo">
         <h3>Birds</h3>
       </div>
     </div>
 
     <div class="petCard">
-      <img src="assets/images/pets/pet7.jpg">
+      <img src="assets/images/pets/pet7.avif">
       <div class="petInfo">
         <h3>Fish</h3>
       </div>

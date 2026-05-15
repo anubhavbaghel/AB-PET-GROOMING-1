@@ -45,27 +45,27 @@
 
       <div class="stackStage">
         <div class="stackTrack" id="slider">
-          <div class="stackItem"><img src="assets/images/about/about.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about1.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about2.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about3.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about4.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about5.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about6.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about7.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about8.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about9.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about10.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about11.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about12.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about13.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about14.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about15.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about16.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about17.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about18.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about19.jpg" alt=""></div>
-          <div class="stackItem"><img src="assets/images/about/about20.jpg" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about1.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about2.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about3.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about4.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about5.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about6.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about7.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about8.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about9.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about10.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about11.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about12.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about13.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about14.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about15.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about16.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about17.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about18.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about19.avif" alt=""></div>
+          <div class="stackItem"><img src="assets/images/about/about20.avif" alt=""></div>
         </div>
       </div>
 

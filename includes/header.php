@@ -15,7 +15,7 @@
   <div class="container nav-inner">
     
    <a class="brand" href="#">
-  <img src="assets/images/logo.png" alt="Logo" class="logo">
+  <img src="assets/images/logo.avif" alt="Logo" class="logo">
   <span>AB Pet Grooming Store</span>
 </a>
 
