@@ -53,9 +53,11 @@ export async function POST(req: Request) {
       const sql = `INSERT INTO ${APPOINTMENTS_TABLE} (owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
       const params = [owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status];
 
-      await conn.execute(sql, params)
-      info('appointment.created', { owner_name, appointment_date, appointment_time })
-      return NextResponse.json({ success: true })
+      const [result] = await conn.execute(sql, params)
+      // extract insert id in a DB-agnostic way
+      const insertId = (result && (result as any).insertId) || (Array.isArray(result) && result[0] && (result[0] as any).insertId) || 0
+      info('appointment.created', { owner_name, appointment_date, appointment_time, id: insertId })
+      return NextResponse.json({ success: true, id: insertId })
     } finally {
       try { await conn.end() } catch (e) { /* ignore */ }
     }
