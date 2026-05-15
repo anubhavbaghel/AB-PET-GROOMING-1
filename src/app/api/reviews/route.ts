@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createPool } from 'mysql2/promise'
+import { createPool } from '@/lib/db'
 
 const pool = createPool({
   host: process.env.DB_HOST || 'localhost',

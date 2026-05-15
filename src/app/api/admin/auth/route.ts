@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import { createConnection } from '@/lib/db'
 
 const DB_HOST = process.env.DB_HOST || 'localhost';
 const DB_USER = process.env.DB_USER || 'root';
-const DB_PASS = process.env.DB_PASS || '';
+const DB_PASS = process.env.DB_PASSWORD || '';
 const DB_NAME = process.env.DB_NAME || 'ab_pet_grooming';
 
 export async function POST(req: Request) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Missing credentials' }, { status: 400 });
     }
 
-    const conn = await mysql.createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME });
+    const conn = await createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME });
     try {
       const [rows] = await conn.execute('SELECT id, username, password FROM admin_users WHERE username = ? AND password = ?', [username, password]);
       const results: any[] = Array.isArray(rows) ? rows as any[] : [];

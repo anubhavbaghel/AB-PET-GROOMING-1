@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import { createConnection } from '@/lib/db'
 import { NextResponse } from 'next/server';
 
 const DB = {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const payment_method = (body.payment_method || 'cash').toString();
     const payment_status = payment_method === 'online' ? 'paid' : 'pending';
 
-    const conn = await mysql.createConnection(DB);
+    const conn = await createConnection(DB);
 
     const [rows] = await conn.execute("SELECT COUNT(*) as total FROM appointments WHERE appointment_date=?", [appointment_date]);
     const total = (rows as any)[0].total || 0;

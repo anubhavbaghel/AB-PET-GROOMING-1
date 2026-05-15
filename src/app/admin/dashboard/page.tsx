@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import mysql from 'mysql2/promise';
+import { createConnection } from '@/lib/db'
 import DashboardCharts from '@/components/admin/DashboardCharts';
 
 const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -88,7 +88,14 @@ export default async function DashboardPage() {
     // Monthly: last 6 months
     const startMonth = new Date(today.getFullYear(), today.getMonth() - 5, 1);
     const startMonthStr = isoDate(startMonth);
-    const [monthlyRows] = await conn.query("SELECT DATE_FORMAT(appointment_date, '%Y-%m') as ym, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY ym ORDER BY ym", [startMonthStr]);
+    let monthlyRows: any[] = [];
+    if (process.env.DB_CLIENT === 'sqlite') {
+      const res = await conn.query("SELECT strftime('%Y-%m', appointment_date) as ym, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY ym ORDER BY ym", [startMonthStr]);
+      monthlyRows = res[0] as any[]
+    } else {
+      const res = await conn.query("SELECT DATE_FORMAT(appointment_date, '%Y-%m') as ym, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY ym ORDER BY ym", [startMonthStr]);
+      monthlyRows = res[0] as any[]
+    }
     const monthlyMap = new Map<string, number>();
     (monthlyRows as any[]).forEach((r: any) => monthlyMap.set(String(r.ym), Number(r.cnt)));
 

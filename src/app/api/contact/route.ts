@@ -1,4 +1,4 @@
-import mysql from 'mysql2/promise';
+import { createConnection } from '@/lib/db'
 import { NextResponse } from 'next/server';
 
 const DB = {
@@ -17,7 +17,7 @@ export async function POST(req: Request){
     const subject = (body.subject || '').toString();
     const message = (body.message || '').toString();
 
-    const conn = await mysql.createConnection(DB);
+    const conn = await createConnection(DB);
     const sql = `INSERT INTO contact_messages (name,email,phone,subject,message) VALUES (?,?,?,?,?)`;
     await conn.execute(sql, [name,email,phone,subject,message]);
     await conn.end();
