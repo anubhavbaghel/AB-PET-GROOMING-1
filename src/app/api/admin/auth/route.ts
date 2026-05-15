@@ -61,8 +61,9 @@ export async function POST(req: Request) {
           const maxAge = 60 * 60 * 24
           const res = NextResponse.json({ success: true }, { status: 200 })
           const secure = process.env.NODE_ENV === 'production'
-          res.cookies.set('admin_id', String(admin.id), { httpOnly: true, path: '/admin', maxAge, secure, sameSite: 'lax' })
-          res.cookies.set('admin_username', String(admin.username), { httpOnly: true, path: '/admin', maxAge, secure, sameSite: 'lax' })
+          // set cookies at root path so API routes under /api can receive them
+          res.cookies.set('admin_id', String(admin.id), { httpOnly: true, path: '/', maxAge, secure, sameSite: 'lax' })
+          res.cookies.set('admin_username', String(admin.username), { httpOnly: true, path: '/', maxAge, secure, sameSite: 'lax' })
           return res
         }
       }
