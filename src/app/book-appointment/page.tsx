@@ -12,11 +12,15 @@ export default function BookAppointment() {
     setStatus(null)
     const form = new FormData(e.currentTarget)
     const payload: any = {}
+    // Normalize keys like "addons[]" -> "addons" and collect multiple values into arrays
     form.forEach((v, k) => {
-      if (payload[k]) {
-        if (Array.isArray(payload[k])) payload[k].push(v)
-        else payload[k] = [payload[k], v]
-      } else payload[k] = v
+      const name = k.endsWith('[]') ? k.slice(0, -2) : k
+      if (payload[name] !== undefined) {
+        if (Array.isArray(payload[name])) payload[name].push(v)
+        else payload[name] = [payload[name], v]
+      } else {
+        payload[name] = v
+      }
     })
 
     try {

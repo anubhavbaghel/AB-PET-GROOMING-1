@@ -21,6 +21,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Missing credentials' }, { status: 400 })
     }
 
+    // optional admin CSRF token check (set ADMIN_CSRF_TOKEN in env for production)
+    const expected = process.env.ADMIN_CSRF_TOKEN
+    if (expected) {
+      const header = req.headers.get('x-csrf-token') || ''
+      if (header !== expected) {
+        return NextResponse.json({ success: false, message: 'Missing or invalid CSRF token' }, { status: 403 })
+      }
+    }
+
     const conn = await createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME })
     try {
       const q = 'SELECT id, username, password FROM admin_users WHERE username = ?'
