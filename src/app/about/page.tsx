@@ -57,108 +57,105 @@ export default function AboutPage() {
   }
 
   return (
-    <>
-      <section className="story-flow">
-        <div className="container">
-          <div className="story-block">
+    <main className="about-main">
+      {/* Story Section */}
+      <section className="story-section">
+        <div className="container story-grid">
+          <article className="story-card">
             <h2>Our Story</h2>
             <p>
               AB Pet Grooming is built with one goal — stress-free grooming.
               Every pet deserves gentle care, hygiene, and a calm environment.
             </p>
-          </div>
+          </article>
 
-          <div className="story-block">
+          <article className="story-card">
             <h2>Our Goal</h2>
             <p>
               We aim to deliver premium grooming with consistency and trust.
               Every visit should feel safe, clean, and professional.
             </p>
-          </div>
+          </article>
 
-          <div className="story-block">
+          <article className="story-card">
             <h2>Our Vision</h2>
             <p>
               We are creating a modern grooming experience where comfort meets
               premium quality and global standards.
             </p>
-          </div>
+          </article>
         </div>
       </section>
 
-      <section className="awardsStack">
+      {/* Awards Slider */}
+      <section className="awards-section">
         <div className="container">
-          <div className="awardsHead">
-            <h3>Awards & Journey</h3>
+          <div className="section-header">
+            <h2>Awards & Journey</h2>
             <p>Championship moments, trophies, certificates and grooming highlights.</p>
           </div>
 
-          <div className="stackWrap">
-            <button className="stackBtn left" type="button" onClick={prev}>&#10094;</button>
+          <div className="slider-container">
+            <button className="slider-btn prev" type="button" aria-label="Previous image" onClick={prev}>&#10094;</button>
 
-            <div className="stackStage">
-              <div className="stackTrack" ref={trackRef} style={{transform:`translateX(-${slideIndex * 100}%)`, display:'flex', transition:'transform 400ms ease'}}>
-                {images.map((n) => (
-                  <div className="stackItem" key={n} style={{flex:'0 0 100%'}}>
-                    <img src={`/assets/images/about/${n}.avif`} alt="" />
-                  </div>
-                ))}
-              </div>
+            <div className="slider-track" ref={trackRef} style={{ transform: `translateX(-${slideIndex * 100}%)` }}>
+              {images.map((n) => (
+                <div className="slider-item" key={n}>
+                  <img src={`/assets/images/about/${n}.avif`} alt="Award moment" loading="lazy" />
+                </div>
+              ))}
             </div>
 
-            <button className="stackBtn right" type="button" onClick={next}>&#10095;</button>
+            <button className="slider-btn next" type="button" aria-label="Next image" onClick={next}>&#10095;</button>
           </div>
-
-          <div className="stackDots" />
         </div>
       </section>
 
-      <section className="reelsSection">
+      {/* Reels Section */}
+      <section className="reels-section">
         <div className="container">
-          <div className="reelsHead">
+          <div className="section-header">
             <h2>Watch Our Reels</h2>
             <p>Quick grooming highlights, transformations, happy pets and behind-the-scenes moments.</p>
           </div>
 
-          <div className="reelsWrap">
-            <div className="reelsViewport">
-              <div className="reelsTrack" style={{display:'flex', gap:12}}>
-                {[1,2,3,4,5,6].map(i=> (
-                  <div className="reelSlide" key={i} style={{flex:'0 0 33.3333%'}}>
-                    <div className="reelCard">
-                      <video className="reelVideo" controls playsInline preload="metadata" poster={`/assets/images/reels/reel${i}.jpg`}>
-                        <source src={`/assets/videos/reels/reel${i}.mp4`} type="video/mp4" />
-                      </video>
-                    </div>
-                  </div>
-                ))}
+          <div className="reels-track">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div className="reel-card" key={i}>
+                <video className="reel-video" controls playsInline autoPlay muted loop poster={`/assets/images/reels/reel${i}.jpg`}>
+                  <source src={`/assets/videos/reels/reel${i}.mp4`} type="video/mp4" />
+                </video>
               </div>
-            </div>
+            ))}
           </div>
 
-          <div className="reelsInstagram">
-            <a href="https://www.instagram.com/ab_pet_grooming_studio" target="_blank" rel="noreferrer" className="instaBtn">View More on Instagram →</a>
+          <div className="insta-btn-wrap">
+            <a href="https://www.instagram.com/ab_pet_grooming_studio" target="_blank" rel="noreferrer" className="insta-btn">View More on Instagram →</a>
           </div>
         </div>
       </section>
 
-      <section className="review-section">
-        <h2 className="review-title">What Our Happy Users Say 💜</h2>
-
-        <div className="carousel">
-          <div className="carousel-track" style={{display:'flex', gap:20, overflowX:'auto', padding:'20px'}}>
+      {/* Reviews Section */}
+      <section className="reviews-section">
+        <div className="container">
+          <div className="section-header">
+            <h2>What Our Happy Users Say 💜</h2>
+            <p>Authentic experiences shared by our beloved pet parents.</p>
+          </div>
+          
+          <div className="reviews-track">
             {reviews.length === 0 ? (
-              <div className="review-card">No reviews yet.</div>
+              <div className="review-card"><p className="review-text" style={{textAlign: 'center'}}>No reviews yet.</p></div>
             ) : reviews.map(r => (
-              <div className="review-card" key={r.id} style={{minWidth:260}}>
-                <div className="stars">{'⭐'.repeat(r.rating)}</div>
+              <article className="review-card" key={r.id}>
+                <div className="review-stars">{'⭐'.repeat(r.rating)}</div>
                 <p className="review-text">“{r.message}”</p>
                 <h4 className="review-name">— {r.name}</h4>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
-    </>
+    </main>
   )
 }

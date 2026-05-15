@@ -2179,3 +2179,280 @@ a {
     max-width: 100%;
   }
 }
+
+/* ----- about.css (Mobile First Redesign) ----- */
+.about-main {
+  background: #fbfbff;
+  padding-bottom: 40px;
+}
+
+/* Common Section Header */
+.section-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.section-header h2 {
+  font-size: 28px;
+  color: #2d2047;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.section-header p {
+  color: #5d5672;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Story Section */
+.story-section {
+  padding: 40px 0;
+  background: linear-gradient(135deg, #f6efff 0%, #fdf1f8 100%);
+  margin-bottom: 40px;
+}
+
+.story-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.story-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 24px;
+  border: 2px solid #e1d5ff;
+  box-shadow: 0 10px 30px rgba(108, 76, 158, 0.05);
+  text-align: center;
+  transition: 0.3s ease;
+}
+
+.story-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(108, 76, 158, 0.1);
+  border-color: #c084fc;
+}
+
+.story-card h2 {
+  font-size: 22px;
+  color: #7158a6;
+  margin-bottom: 12px;
+  font-weight: 800;
+}
+
+.story-card p {
+  color: #5d5672;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Awards Slider */
+.awards-section {
+  margin-bottom: 50px;
+}
+
+.slider-container {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(108, 76, 158, 0.08);
+  border: 4px solid #fff;
+  background: #f6efff;
+}
+
+.slider-track {
+  display: flex;
+  transition: transform 400ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.slider-item {
+  flex: 0 0 100%;
+  position: relative;
+  padding-top: 100%; /* Square aspect ratio on mobile to fit taller award images */
+}
+
+.slider-item img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #7158a6;
+  border: none;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10;
+  transition: 0.3s ease;
+}
+
+.slider-btn:hover {
+  background: #7158a6;
+  color: #fff;
+}
+
+.slider-btn.prev { left: 12px; }
+.slider-btn.next { right: 12px; }
+
+/* Reels Section */
+.reels-section {
+  padding: 50px 0;
+  background: #fbf8ff;
+  border-top: 2px solid #f0e6ff;
+  border-bottom: 2px solid #f0e6ff;
+  margin-bottom: 50px;
+}
+
+.reels-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px 5px 20px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
+}
+
+.reels-track::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.reel-card {
+  flex: 0 0 240px; /* Touch-friendly Mobile width */
+  scroll-snap-align: center;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(108, 76, 158, 0.15);
+  background: #000;
+  aspect-ratio: 9/16;
+  position: relative;
+}
+
+.reel-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.insta-btn-wrap {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.insta-btn {
+  display: inline-block;
+  background: linear-gradient(45deg, #f58529, #dd2a7b, #8134af);
+  color: #fff;
+  padding: 16px 32px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 20px rgba(221, 42, 123, 0.2);
+  transition: 0.3s ease;
+}
+
+.insta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 25px rgba(221, 42, 123, 0.3);
+}
+
+/* Reviews Section */
+.reviews-section {
+  margin-bottom: 30px;
+}
+
+.reviews-track {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 10px 5px 30px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.reviews-track::-webkit-scrollbar {
+  display: none;
+}
+
+.review-card {
+  flex: 0 0 280px;
+  scroll-snap-align: center;
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 2px solid #e1d5ff;
+  box-shadow: 0 8px 24px rgba(108, 76, 158, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: 0.3s ease;
+}
+
+.review-card:hover {
+  border-color: #c084fc;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(108, 76, 158, 0.1);
+}
+
+.review-stars {
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.review-text {
+  color: #433363;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.review-name {
+  color: #7158a6;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* Desktop Progressive Enhancement */
+@media (min-width: 768px) {
+  .story-section {
+    padding: 60px 0;
+  }
+  .story-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .section-header h2 {
+    font-size: 36px;
+  }
+  .slider-item {
+    padding-top: 56.25%; /* 16:9 standard wider aspect ratio for desktop */
+  }
+  .reel-card {
+    flex: 0 0 300px;
+  }
+  .review-card {
+    flex: 0 0 340px;
+  }
+  .slider-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+  }
+}
