@@ -12,10 +12,11 @@ export default function BookAppointment() {
     setIsSubmitting(true)
     setStatus(null)
     setErrorMessage(null)
-    const form = new FormData(e.currentTarget)
+    const formEl = e.currentTarget as HTMLFormElement
+    const formData = new FormData(formEl)
     const payload: any = {}
     // Normalize keys like "addons[]" -> "addons" and collect multiple values into arrays
-    form.forEach((v, k) => {
+    formData.forEach((v, k) => {
       const name = k.endsWith('[]') ? k.slice(0, -2) : k
       if (payload[name] !== undefined) {
         if (Array.isArray(payload[name])) payload[name].push(v)
@@ -53,7 +54,8 @@ export default function BookAppointment() {
 
       if (res.ok && json && json.success) {
         setStatus('success')
-        e.currentTarget.reset()
+        // use the captured form element reference since the React event may be nullified after await
+        try { formEl.reset() } catch (e) { console.warn('form reset failed', e) }
       } else if (json && json.full) {
         setStatus('full')
       } else {
