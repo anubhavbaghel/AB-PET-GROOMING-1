@@ -94,19 +94,19 @@ export default function DashboardCharts({ dailyLabels, dailyCounts, weeklyLabels
   ]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
-      <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-        <h3 style={{ margin: '0 0 8px 0' }}>Daily (Last 7 days)</h3>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+      <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#2d2047' }}>Daily Bookings (Last 7 days)</h3>
         <canvas ref={dailyRef} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-          <h3 style={{ margin: '0 0 8px 0' }}>Weekly (Last 4 weeks)</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#2d2047' }}>Weekly Growth (Last 4 weeks)</h3>
           <canvas ref={weeklyRef} />
         </div>
-        <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-          <h3 style={{ margin: '0 0 8px 0' }}>Monthly (Last 6 months)</h3>
+        <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#2d2047' }}>Monthly Trends (Last 6 months)</h3>
           <canvas ref={monthlyRef} />
         </div>
       </div>

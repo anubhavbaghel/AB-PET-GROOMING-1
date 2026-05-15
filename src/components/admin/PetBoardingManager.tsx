@@ -61,55 +61,61 @@ export default function PetBoardingManager() {
   }
 
   return (
-    <div style={{ marginTop: 18 }}>
-      <div style={{ background: '#fff', padding: 12, borderRadius: 8, marginBottom: 12 }}>
-        <h3>{editingId ? 'Edit Service' : 'Add Boarding Service'}</h3>
+    <div>
+      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)', padding: '24px', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#2d2047', marginBottom: '16px' }}>{editingId ? 'Edit Boarding Service' : 'Add Boarding Service'}</h2>
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 8 }}>
-            <label>Name</label><br />
-            <input value={name} onChange={e => setName(e.target.value)} required style={{ width: '100%', padding: 8 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Service Name</label>
+              <input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Deluxe Suite" style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E6D9F5', outline: 'none', background: '#F8F6FC', fontSize: '14px' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Price (₹)</label>
+              <input value={price} onChange={e => setPrice(e.target.value)} placeholder="e.g. 500" style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E6D9F5', outline: 'none', background: '#F8F6FC', fontSize: '14px' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Type / Category</label>
+              <input value={type} onChange={e => setType(e.target.value)} placeholder="e.g. Day Boarding" style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #E6D9F5', outline: 'none', background: '#F8F6FC', fontSize: '14px' }} />
+            </div>
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Price</label><br />
-            <input value={price} onChange={e => setPrice(e.target.value)} style={{ padding: 8, width: 200 }} />
-          </div>
-          <div style={{ marginBottom: 8 }}>
-            <label>Type</label><br />
-            <input value={type} onChange={e => setType(e.target.value)} placeholder="e.g., Day Boarding" style={{ padding: 8, width: 240 }} />
-          </div>
-          <div>
-            <button type="submit" className="btn btn-primary">{editingId ? 'Update' : 'Add'}</button>
-            {editingId ? <button type="button" onClick={clearForm} style={{ marginLeft: 8 }}>Cancel</button> : null}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #7158a6, #c084fc)', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 10px rgba(113,88,166,0.2)' }}>{editingId ? 'Update Service' : 'Add Service'}</button>
+            {editingId && <button type="button" onClick={clearForm} style={{ padding: '10px 20px', borderRadius: '8px', background: '#F8F6FC', color: '#7158a6', border: '1px solid #E6D9F5', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>}
           </div>
         </form>
       </div>
 
-      <div style={{ background: '#fff', padding: 12, borderRadius: 8 }}>
-        <h3>Boarding Services</h3>
-        {loading ? <div>Loading...</div> : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', borderBottom: '1px solid #eee' }}>
-                <th style={{ padding: 8 }}>Name</th>
-                <th style={{ padding: 8 }}>Price</th>
-                <th style={{ padding: 8 }}>Type</th>
-                <th style={{ padding: 8 }}>Action</th>
+      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)', padding: '24px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#2d2047', marginBottom: '16px' }}>Service Catalog</h2>
+        {loading ? <div style={{ padding: '40px', textAlign: 'center', color: '#7A7A7A' }}>Loading catalog...</div> : (
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            <thead style={{ textAlign: 'left', background: '#F8F6FC', borderTop: '1px solid #E6D9F5', borderBottom: '2px solid #E6D9F5' }}>
+              <tr>
+                <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Name</th>
+                <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Type</th>
+                <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Price</th>
+                <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600, width: '180px' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {items.map(it => (
-                <tr key={it.id}>
-                  <td style={{ padding: 8 }}>{it.name}</td>
-                  <td style={{ padding: 8 }}>{it.price ? `₹${it.price}` : '-'}</td>
-                  <td style={{ padding: 8 }}>{it.type || '-'}</td>
-                  <td style={{ padding: 8 }}>
-                    <button onClick={() => handleEdit(it)} style={{ marginRight: 8 }}>Edit</button>
-                    <button onClick={() => handleDelete(it.id)} style={{ color: '#c00' }}>Delete</button>
+                <tr key={it.id} style={{ borderBottom: '1px solid #E6D9F5' }}>
+                  <td style={{ padding: '12px 16px', color: '#2d2047', fontWeight: 600 }}>{it.name}</td>
+                  <td style={{ padding: '12px 16px', color: '#7A7A7A' }}>{it.type || '-'}</td>
+                  <td style={{ padding: '12px 16px', color: '#7158a6', fontWeight: 600 }}>{it.price ? `₹${it.price}` : '-'}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleEdit(it)} style={{ padding: '6px 12px', background: '#F8F6FC', color: '#7158a6', border: '1px solid #E6D9F5', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>Edit</button>
+                      <button onClick={() => handleDelete(it.id)} style={{ padding: '6px 12px', background: '#fff1f1', color: '#b22222', border: '1px solid #f0c4c4', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>Delete</button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

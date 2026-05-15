@@ -110,58 +110,58 @@ export default async function DashboardPage() {
     }
 
     return (
-      <div style={{ padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
           <div>
-            <h1>Dashboard</h1>
-            <p>Welcome back — admin #{adminId}</p>
+            <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#2d2047', margin: '0 0 8px 0' }}>Dashboard Overview</h1>
+            <p style={{ color: '#7A7A7A', margin: 0 }}>Here's what's happening today at AB Pet Grooming.</p>
           </div>
-          <div>
-            <a href="/admin/bookings" style={{ marginRight: 12 }}>View Bookings</a>
-            <a href="/admin/services">Services</a>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: 12, marginTop: 20 }}>
-          <div style={{ padding: 16, borderRadius: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{total_appointments}</div>
-            <div style={{ color: '#666' }}>Total Appointments</div>
-          </div>
-          <div style={{ padding: 16, borderRadius: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{today_appointments}</div>
-            <div style={{ color: '#666' }}>Today's Appointments</div>
-          </div>
-          <div style={{ padding: 16, borderRadius: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{upcoming}</div>
-            <div style={{ color: '#666' }}>Upcoming</div>
-          </div>
-          <div style={{ padding: 16, borderRadius: 8, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{total_customers}</div>
-            <div style={{ color: '#666' }}>Total Customers</div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <a href="/admin/bookings" style={{ background: '#fff', color: '#7158a6', border: '1px solid #E6D9F5', padding: '10px 16px', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, fontSize: '14px', transition: '0.2s' }}>View Bookings</a>
+            <a href="/admin/services" style={{ background: 'linear-gradient(135deg, #7158a6, #c084fc)', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', textDecoration: 'none', fontWeight: 600, fontSize: '14px', transition: '0.2s', boxShadow: '0 4px 10px rgba(113,88,166,0.2)' }}>Manage Services</a>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 12, marginTop: 18 }}>
-          <div style={{ padding: 14, borderRadius: 8, background: '#fff' }}>
-            <div style={{ fontWeight: 700, fontSize: 20 }}>{dogs}</div>
-            <div style={{ color: '#666' }}>Dog Appointments</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: '16px', marginTop: '20px' }}>
+          <div style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2d2047' }}>{total_appointments}</div>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 500, marginTop: '4px' }}>Total Appointments</div>
           </div>
-          <div style={{ padding: 14, borderRadius: 8, background: '#fff' }}>
-            <div style={{ fontWeight: 700, fontSize: 20 }}>{cats}</div>
-            <div style={{ color: '#666' }}>Cat Appointments</div>
+          <div style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2d2047' }}>{today_appointments}</div>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 500, marginTop: '4px' }}>Today's Appointments</div>
           </div>
-          <div style={{ padding: 14, borderRadius: 8, background: '#fff' }}>
-            <div style={{ fontWeight: 700, fontSize: 20 }}>{classic}</div>
-            <div style={{ color: '#666' }}>Classic Packages</div>
+          <div style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2d2047' }}>{upcoming}</div>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 500, marginTop: '4px' }}>Upcoming Bookings</div>
           </div>
-          <div style={{ padding: 14, borderRadius: 8, background: '#fff' }}>
-            <div style={{ fontWeight: 700, fontSize: 20 }}>{addons}</div>
-            <div style={{ color: '#666' }}>With Add-ons</div>
+          <div style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#2d2047' }}>{total_customers}</div>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 500, marginTop: '4px' }}>Total Customers</div>
           </div>
         </div>
 
-        <div style={{ marginTop: 22 }}>
-          <h2>Charts</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: '16px', marginTop: '16px' }}>
+          <div style={{ padding: '16px', borderRadius: '12px', background: '#F8F6FC', border: '1px solid #E6D9F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 600 }}>🐶 Dog Appointments</div>
+            <div style={{ fontWeight: 800, fontSize: '20px', color: '#7158a6' }}>{dogs}</div>
+          </div>
+          <div style={{ padding: '16px', borderRadius: '12px', background: '#F8F6FC', border: '1px solid #E6D9F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 600 }}>🐱 Cat Appointments</div>
+            <div style={{ fontWeight: 800, fontSize: '20px', color: '#7158a6' }}>{cats}</div>
+          </div>
+          <div style={{ padding: '16px', borderRadius: '12px', background: '#F8F6FC', border: '1px solid #E6D9F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 600 }}>🛁 Classic Packages</div>
+            <div style={{ fontWeight: 800, fontSize: '20px', color: '#7158a6' }}>{classic}</div>
+          </div>
+          <div style={{ padding: '16px', borderRadius: '12px', background: '#F8F6FC', border: '1px solid #E6D9F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ color: '#7A7A7A', fontSize: '14px', fontWeight: 600 }}>✨ With Add-ons</div>
+            <div style={{ fontWeight: 800, fontSize: '20px', color: '#7158a6' }}>{addons}</div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: '32px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#2d2047', marginBottom: '16px' }}>Analytics & Trends</h2>
           <DashboardCharts
             dailyLabels={dailyLabels}
             dailyCounts={dailyCounts}
@@ -172,35 +172,49 @@ export default async function DashboardPage() {
           />
         </div>
 
-        <div style={{ marginTop: 22 }}>
-          <h2>Recent Appointments</h2>
-          <div style={{ overflowX: 'auto', marginTop: 8 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ textAlign: 'left', borderBottom: '1px solid #eee' }}>
+        <div style={{ marginTop: '32px', background: '#fff', borderRadius: '16px', border: '1px solid #E6D9F5', boxShadow: '0 4px 12px rgba(113, 88, 166, 0.05)', padding: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#2d2047', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            Recent Appointments
+            <a href="/admin/bookings" style={{ fontSize: '14px', color: '#7158a6', textDecoration: 'none', fontWeight: 600 }}>View All →</a>
+          </h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead style={{ textAlign: 'left', background: '#F8F6FC', borderTop: '1px solid #E6D9F5', borderBottom: '2px solid #E6D9F5' }}>
                 <tr>
-                  <th style={{ padding: 8 }}>ID</th>
-                  <th style={{ padding: 8 }}>Owner</th>
-                  <th style={{ padding: 8 }}>Pet</th>
-                  <th style={{ padding: 8 }}>Service</th>
-                  <th style={{ padding: 8 }}>Date</th>
-                  <th style={{ padding: 8 }}>Time</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>ID</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Owner</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Pet</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Service</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Date</th>
+                  <th style={{ padding: '12px 16px', color: '#4A4A4A', fontWeight: 600 }}>Time</th>
                 </tr>
               </thead>
               <tbody>
                 {Array.isArray(recentRows) && recentRows.length > 0 ? (
                   recentRows.map((r: any) => (
-                    <tr key={r.id}>
-                      <td style={{ padding: 8 }}>#{r.id}</td>
-                      <td style={{ padding: 8 }}>{r.owner_name}<div style={{ fontSize: 12, color: '#666' }}>{r.phone}</div></td>
-                      <td style={{ padding: 8 }}>{r.pet_name}<div style={{ fontSize: 12, color: '#666' }}>{r.breed}</div></td>
-                      <td style={{ padding: 8 }}>{r.main_service}{r.addons ? <div style={{ fontSize: 12, color: '#666' }}>+ {r.addons}</div> : null}</td>
-                      <td style={{ padding: 8 }}>{formatDate(r.appointment_date)}</td>
-                      <td style={{ padding: 8 }}>{r.appointment_time}</td>
+                    <tr key={r.id} style={{ borderBottom: '1px solid #E6D9F5' }}>
+                      <td style={{ padding: '12px 16px', color: '#2d2047', fontWeight: 600 }}>#{r.id}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ color: '#2d2047', fontWeight: 500 }}>{r.owner_name}</div>
+                        <div style={{ fontSize: '12px', color: '#7A7A7A' }}>{r.phone}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ color: '#2d2047', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {r.pet_category === 'Dog' ? '🐶' : r.pet_category === 'Cat' ? '🐱' : ''} {r.pet_name}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#7A7A7A' }}>{r.breed || '-'}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ display: 'inline-block', background: '#F0E6FF', color: '#7158a6', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>{r.main_service}</span>
+                        {r.addons ? <div style={{ fontSize: '12px', color: '#7A7A7A', marginTop: '4px' }}>+ {r.addons}</div> : null}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#4A4A4A' }}>{formatDate(r.appointment_date)}</td>
+                      <td style={{ padding: '12px 16px', color: '#4A4A4A' }}>{r.appointment_time}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} style={{ padding: 20, textAlign: 'center', color: '#888' }}>No appointments yet</td>
+                    <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: '#7A7A7A' }}>No appointments found.</td>
                   </tr>
                 )}
               </tbody>
