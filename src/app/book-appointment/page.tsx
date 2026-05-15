@@ -5,11 +5,13 @@ import { useState } from 'react'
 export default function BookAppointment() {
   const [status, setStatus] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setIsSubmitting(true)
     setStatus(null)
+    setErrorMessage(null)
     const form = new FormData(e.currentTarget)
     const payload: any = {}
     // Normalize keys like "addons[]" -> "addons" and collect multiple values into arrays
@@ -29,17 +31,39 @@ export default function BookAppointment() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
-      const json = await res.json()
-      if (res.ok && json.success) {
+
+      // try parse JSON, but surface useful debug info if it fails
+      let json: any = null
+      try {
+        json = await res.json()
+      } catch (parseErr) {
+        try {
+          const txt = await res.text()
+          console.error('Failed to parse JSON response from /api/appointments:', res.status, txt, parseErr)
+          setErrorMessage('Invalid server response')
+        } catch (e) {
+          console.error('Failed to read response text', e)
+          setErrorMessage('Invalid server response')
+        }
+        setStatus('error')
+        return
+      }
+
+      console.log('POST /api/appointments response', res.status, res.headers.get('content-type'), json)
+
+      if (res.ok && json && json.success) {
         setStatus('success')
         e.currentTarget.reset()
-      } else if (json.full) {
+      } else if (json && json.full) {
         setStatus('full')
       } else {
         setStatus('error')
+        setErrorMessage((json && (json.error || json.message)) || 'Something went wrong. Please try again.')
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Booking submit error', err)
       setStatus('error')
+      setErrorMessage(err?.message || 'Network error')
     } finally {
       setIsSubmitting(false)
     }
@@ -189,7 +213,7 @@ export default function BookAppointment() {
               
               {status === 'success' && <div className="form-alert success" style={{marginTop: '20px'}}>Appointment successfully requested! Our team will contact you shortly.</div>}
               {status === 'full' && <div className="form-alert error" style={{marginTop: '20px'}}>Sorry, we are fully booked for that slot. Please choose another date or time.</div>}
-              {status === 'error' && <div className="form-alert error" style={{marginTop: '20px'}}>Something went wrong. Please try again.</div>}
+              {status === 'error' && <div className="form-alert error" style={{marginTop: '20px'}}>{errorMessage ?? 'Something went wrong. Please try again.'}</div>}
             </form>
           </div>
 
