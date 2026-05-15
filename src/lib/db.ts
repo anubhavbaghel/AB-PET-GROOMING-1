@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 
-const DB_CLIENT = process.env.DB_CLIENT || 'mysql'
 let sqliteDb: any = null
 let mysql2: any = null
 
@@ -102,6 +101,8 @@ function isSelect(sql: string) {
 }
 
 export function createPool(opts?: any) {
+  const DB_CLIENT = process.env.DB_CLIENT || 'mysql'
+
   if (DB_CLIENT === 'sqlite') {
     const db = initSqlite()
     return {
@@ -134,6 +135,8 @@ export function createPool(opts?: any) {
 }
 
 export async function createConnection(opts?: any) {
+  const DB_CLIENT = process.env.DB_CLIENT || 'mysql'
+
   if (DB_CLIENT === 'sqlite') {
     const db = initSqlite()
     return {

@@ -5,7 +5,7 @@ import LogoutButton from '@/components/admin/LogoutButton';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies();
   const adminId = cookieStore.get('admin_id')?.value;
-  if (!adminId) redirect('/admin/login');
+  if (!adminId) redirect('/admin-login');
 
   const adminUsername = cookieStore.get('admin_username')?.value || '';
 

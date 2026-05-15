@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createPool } from '@/lib/db'
+import { getAdminFromRequest } from '@/lib/adminAuth'
 
 const pool = createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -8,8 +9,10 @@ const pool = createPool({
   database: process.env.DB_NAME || 'ab_pet_grooming',
 })
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const admin = await getAdminFromRequest(req)
+    if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     console.log('DEBUG: admin/services pool', !!pool, typeof pool?.query, typeof pool?.execute)
 
     if (!pool || typeof pool.query !== 'function') {
@@ -46,6 +49,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const admin = await getAdminFromRequest(req)
+    if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const body = await req.json()
     const title = (body.title || '').toString()
     const category = (body.category || '').toString()
@@ -70,6 +75,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
+    const admin = await getAdminFromRequest(req)
+    if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
     const id = Number(url.searchParams.get('id'))
     if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
@@ -97,6 +104,8 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const admin = await getAdminFromRequest(req)
+    if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
     const id = Number(url.searchParams.get('id'))
     if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })

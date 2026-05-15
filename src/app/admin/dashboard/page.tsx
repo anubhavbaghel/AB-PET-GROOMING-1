@@ -24,34 +24,35 @@ export default async function DashboardPage() {
   const cookieStore = cookies();
   const adminId = cookieStore.get('admin_id')?.value;
   if (!adminId) {
-    redirect('/admin/login');
+    redirect('/admin-login');
   }
 
-  let conn: mysql.Connection | null = null;
+  const APPOINTMENTS_TABLE = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
+  let conn: any = null;
   try {
-    conn = await mysql.createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME });
+    conn = await createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME });
     // Basic aggregates
-    const [[{ cnt: total_appointments }]] = await conn.query('SELECT COUNT(id) as cnt FROM appointments');
+    const [[{ cnt: total_appointments }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE}`);
     const today = new Date();
     const todayStr = isoDate(today);
-    const [[{ cnt: today_appointments }]] = await conn.query('SELECT COUNT(id) as cnt FROM appointments WHERE appointment_date = ?', [todayStr]);
-    const [[{ cnt: upcoming }]] = await conn.query('SELECT COUNT(id) as cnt FROM appointments WHERE appointment_date >= ?', [todayStr]);
-    const [[{ cnt: total_customers }]] = await conn.query('SELECT COUNT(DISTINCT phone) as cnt FROM appointments');
+    const [[{ cnt: today_appointments }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date = ?`, [todayStr]);
+    const [[{ cnt: upcoming }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ?`, [todayStr]);
+    const [[{ cnt: total_customers }]] = await conn.query(`SELECT COUNT(DISTINCT phone) as cnt FROM ${APPOINTMENTS_TABLE}`);
 
-    const [[{ cnt: dogs }]] = await conn.query("SELECT COUNT(id) as cnt FROM appointments WHERE pet_category = 'Dog'");
-    const [[{ cnt: cats }]] = await conn.query("SELECT COUNT(id) as cnt FROM appointments WHERE pet_category = 'Cat'");
-    const [[{ cnt: classic }]] = await conn.query("SELECT COUNT(id) as cnt FROM appointments WHERE main_service LIKE '%Classic%'");
-    const [[{ cnt: addons }]] = await conn.query("SELECT COUNT(id) as cnt FROM appointments WHERE addons != '' AND addons IS NOT NULL");
+    const [[{ cnt: dogs }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE pet_category = 'Dog'`);
+    const [[{ cnt: cats }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE pet_category = 'Cat'`);
+    const [[{ cnt: classic }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE main_service LIKE '%Classic%'`);
+    const [[{ cnt: addons }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE addons != '' AND addons IS NOT NULL`);
 
     // Recent appointments
-    const [recentRows] = await conn.query('SELECT id, owner_name, phone, pet_name, breed, pet_category, main_service, addons, appointment_date, appointment_time FROM appointments ORDER BY id DESC LIMIT 5');
+    const [recentRows] = await conn.query(`SELECT id, owner_name, phone, pet_name, breed, pet_category, main_service, addons, appointment_date, appointment_time FROM ${APPOINTMENTS_TABLE} ORDER BY id DESC LIMIT 5`);
 
     // Time-series: last 28 days (for weekly/last-4-weeks) and last 7 days (for daily)
     const start28 = new Date(today);
     start28.setDate(start28.getDate() - 27);
     const start28Str = isoDate(start28);
 
-    const [dailyRows] = await conn.query('SELECT appointment_date as d, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY appointment_date ORDER BY appointment_date', [start28Str]);
+    const [dailyRows] = await conn.query(`SELECT appointment_date as d, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY appointment_date ORDER BY appointment_date`, [start28Str]);
     const dailyMap = new Map<string, number>();
     (dailyRows as any[]).forEach((r: any) => {
       const d = r.d instanceof Date ? isoDate(r.d) : String(r.d).slice(0, 10);
@@ -90,10 +91,10 @@ export default async function DashboardPage() {
     const startMonthStr = isoDate(startMonth);
     let monthlyRows: any[] = [];
     if (process.env.DB_CLIENT === 'sqlite') {
-      const res = await conn.query("SELECT strftime('%Y-%m', appointment_date) as ym, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY ym ORDER BY ym", [startMonthStr]);
+      const res = await conn.query(`SELECT strftime('%Y-%m', appointment_date) as ym, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY ym ORDER BY ym`, [startMonthStr]);
       monthlyRows = res[0] as any[]
     } else {
-      const res = await conn.query("SELECT DATE_FORMAT(appointment_date, '%Y-%m') as ym, COUNT(*) as cnt FROM appointments WHERE appointment_date >= ? GROUP BY ym ORDER BY ym", [startMonthStr]);
+      const res = await conn.query(`SELECT DATE_FORMAT(appointment_date, '%Y-%m') as ym, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY ym ORDER BY ym`, [startMonthStr]);
       monthlyRows = res[0] as any[]
     }
     const monthlyMap = new Map<string, number>();

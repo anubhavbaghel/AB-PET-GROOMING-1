@@ -7,6 +7,8 @@ const DB = {
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'ab_pet_grooming',
 }
+}
+const APPOINTMENTS_TABLE = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
 
 export async function POST(req: Request) {
   try {
@@ -30,14 +32,14 @@ export async function POST(req: Request) {
 
     const conn = await createConnection(DB);
 
-    const [rows] = await conn.execute("SELECT COUNT(*) as total FROM appointments WHERE appointment_date=?", [appointment_date]);
+    const [rows] = await conn.execute(`SELECT COUNT(*) as total FROM ${APPOINTMENTS_TABLE} WHERE appointment_date=?`, [appointment_date]);
     const total = (rows as any)[0].total || 0;
     if (total >= 10) {
       await conn.end();
       return NextResponse.json({ full: true }, { status: 400 });
     }
 
-    const sql = `INSERT INTO appointments (owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    const sql = `INSERT INTO ${APPOINTMENTS_TABLE} (owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     const params = [owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status];
 
     await conn.execute(sql, params);

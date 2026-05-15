@@ -14,7 +14,7 @@ export default function LogoutButton() {
     } catch (e) {
       // ignore
     }
-    router.push('/admin/login');
+    router.push('/admin-login');
   }
 
   return (
