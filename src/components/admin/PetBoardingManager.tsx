@@ -108,7 +108,7 @@ export default function PetBoardingManager() {
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={() => handleEdit(it)} style={{ padding: '6px 12px', background: '#F8F6FC', color: '#7158a6', border: '1px solid #E6D9F5', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>Edit</button>
-                      <button onClick={() => handleDelete(it.id)} style={{ padding: '6px 12px', background: '#fff1f1', color: '#b22222', border: '1px solid #f0c4c4', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>Delete</button>
+                      <button onClick={() => it.id && handleDelete(it.id)} style={{ padding: '6px 12px', background: '#fff1f1', color: '#b22222', border: '1px solid #f0c4c4', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>Delete</button>
                     </div>
                   </td>
                 </tr>
