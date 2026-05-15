@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   try {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    const result = await pool.query('SELECT * FROM reviews ORDER BY id DESC')
+    const result = await pool.query('SELECT r.*, c.name as customer_name, c.phone as customer_phone FROM reviews r LEFT JOIN customers c ON r.customer_id = c.id ORDER BY r.id DESC')
     const rows = extractRows(result) || []
     return NextResponse.json(rows)
   } catch (err) {
