@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createPool } from '@/lib/db'
+import api from '@/lib/api'
+import { error as logError } from '@/lib/logger'
 
 const pool = createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -14,10 +16,11 @@ const pool = createPool({
 export async function GET() {
   try {
     const [rows] = await pool.query(
-      "SELECT id, name, message, rating FROM reviews WHERE status='approved' ORDER BY id DESC LIMIT 50"
+      "SELECT id, name, message as review, rating FROM reviews WHERE status='approved' ORDER BY id DESC LIMIT 50"
     )
     return NextResponse.json(rows)
-  } catch (err) {
-    return NextResponse.json({ error: 'db_error' }, { status: 500 })
+  } catch (err: any) {
+    logError('GET /api/reviews error', { error: err?.message || err })
+    return api.serverError('Failed to fetch reviews')
   }
 }
