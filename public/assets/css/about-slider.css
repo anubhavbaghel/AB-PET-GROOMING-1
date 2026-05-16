@@ -18,8 +18,9 @@
   width:500px;
   height:500px;
   background: radial-gradient(circle, rgba(113,88,166,0.25), transparent 70%);
-  top:-150px;
-  left:-150px;
+  top: -150px;
+  left: 0; /* use transform to avoid negative left that can introduce overflow */
+  transform: translateX(-150px);
   z-index:0;
 }
 
@@ -29,8 +30,9 @@
   width:400px;
   height:400px;
   background: radial-gradient(circle, rgba(113,88,166,0.18), transparent 70%);
-  bottom:-150px;
-  right:-100px;
+  bottom: -150px;
+  right: 0; /* use transform instead of negative right */
+  transform: translateX(100px);
   z-index:0;
 }
 

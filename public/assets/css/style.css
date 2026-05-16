@@ -235,7 +235,9 @@ a{
 .blob-3{
   width:240px;
   height:240px;
-  left:-110px;
+  /* avoid negative left which may cause horizontal overflow on some viewports */
+  left: 0;
+  transform: translateX(-110px);
   bottom:-110px;
   opacity:.25;
 }
