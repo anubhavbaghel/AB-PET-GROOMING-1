@@ -11,9 +11,10 @@ export default function ContactPage(){
 
   async function submitContact(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault()
+    const formEl = e.currentTarget
     setIsSubmitting(true)
     setStatus(null)
-    const form = new FormData(e.currentTarget)
+    const form = new FormData(formEl)
     const payload = Object.fromEntries(form.entries())
 
     try{
@@ -25,7 +26,7 @@ export default function ContactPage(){
       const json = await res.json()
       if(res.ok && json.success){
         setStatus('success')
-        e.currentTarget.reset()
+        formEl.reset()
       } else {
         setStatus('error')
       }
@@ -38,9 +39,10 @@ export default function ContactPage(){
 
   async function submitReview(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault()
+    const formEl = e.currentTarget
     setIsReviewSubmitting(true)
     setReviewStatus(null)
-    const form = new FormData(e.currentTarget)
+    const form = new FormData(formEl)
     const payload = Object.fromEntries(form.entries())
 
     try{
@@ -49,9 +51,10 @@ export default function ContactPage(){
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       })
-      if(res.ok){
+      const json = await res.json()
+      if(res.ok && json.success){
         setReviewStatus('success')
-        e.currentTarget.reset()
+        formEl.reset()
       } else {
         setReviewStatus('error')
       }
@@ -128,7 +131,7 @@ export default function ContactPage(){
                   
                   <div className="modern-form-group">
                     <label htmlFor="contact-phone">Phone Number</label>
-                    <input id="contact-phone" name="phone" type="tel" placeholder="+91 00000 00000" required />
+                    <input id="contact-phone" name="phone" type="tel" placeholder="+91 00000 00000" />
                   </div>
                   
                   <div className="modern-form-group">

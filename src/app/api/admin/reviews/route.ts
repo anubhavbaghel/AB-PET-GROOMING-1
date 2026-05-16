@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server'
 import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
+import { ObjectId } from 'mongodb'
+
+function makeReviewIdFilter(id: any) {
+  const s = String(id || '')
+  if (!s) return null
+  if (/^\d+$/.test(s)) return { $or: [{ id: Number(s) }, ...(ObjectId.isValid(s) ? [{ _id: new ObjectId(s) }] : [])] }
+  if (ObjectId.isValid(s)) return { _id: new ObjectId(s) }
+  return null
+}
 
 function extractRows(result: any) {
   return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
@@ -45,10 +54,20 @@ export async function PUT(req: Request) {
     }
 
     if (status) {
+      const idParam = String(idFromQuery || body.id || '')
+      const filter = makeReviewIdFilter(idParam)
+      if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
       const col = await mongo.getCollection('reviews')
-      await col.updateOne({ _id: typeof id === 'string' ? { $eq: id } : { id: id } }, { $set: { status } })
+      await col.updateOne(filter, { $set: { status } })
       return NextResponse.json({ success: true })
     }
+
+    return NextResponse.json({ error: 'missing_status' }, { status: 400 })
+  } catch (err) {
+    console.error('PUT /api/admin/reviews error', err)
+    return NextResponse.json({ error: 'db_error' }, { status: 500 })
+  }
+}
 
     return NextResponse.json({ error: 'missing_status' }, { status: 400 })
   } catch (err) {
@@ -62,11 +81,11 @@ export async function DELETE(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const id = Number(url.searchParams.get('id'))
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
-
+    const idParam = url.searchParams.get('id') || ''
+    const filter = makeReviewIdFilter(idParam)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
     const col = await mongo.getCollection('reviews')
-    await col.deleteOne({ _id: typeof id === 'string' ? { $eq: id } : { id: id } })
+    await col.deleteOne(filter)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('DELETE /api/admin/reviews error', err)
