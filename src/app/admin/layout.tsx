@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminUsername = cookieStore.get('admin_username')?.value || '';
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F6FC', fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F8F6FC' }}>
       {/* Sidebar Navigation */}
       <aside style={{ 
         width: '260px', 
