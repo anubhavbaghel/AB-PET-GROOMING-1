@@ -24,6 +24,10 @@ export default function RootLayout({
         <Header />
         <main>{children}</main>
         <Footer />
+        <div style={{ position: 'fixed', bottom: '24px', right: '24px', display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 9999 }}>
+          <a href="https://wa.me/918828719786" target="_blank" className="btn-pill btn-wa" style={{ boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)', textAlign: 'center' }}>WhatsApp</a>
+          <a href="https://instagram.com/abrar_shaikhsk__" target="_blank" className="btn-pill btn-ig" style={{ boxShadow: '0 4px 12px rgba(225, 48, 108, 0.3)', textAlign: 'center' }}>Instagram</a>
+        </div>
       </body>
     </html>
   )

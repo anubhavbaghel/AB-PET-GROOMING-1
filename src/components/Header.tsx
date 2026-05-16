@@ -20,8 +20,6 @@ export default function Header() {
 
         <div className="nav-buttons">
           <Link href="/book-appointment" className="btn-pill btn-solid">Book Appointment</Link>
-          <a href="https://wa.me/918828719786" target="_blank" className="btn-pill btn-wa">WhatsApp</a>
-          <a href="https://instagram.com/abrar_shaikhsk__" target="_blank" className="btn-pill btn-ig">Instagram</a>
         </div>
       </div>
     </header>
