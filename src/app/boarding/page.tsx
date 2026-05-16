@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 export default function BoardingPage(){
   const [formMsg, setFormMsg] = useState('')
+  const [formStatus, setFormStatus] = useState<'idle'|'submitting'|'success'|'error'>('idle')
   const planRef = useRef<HTMLSelectElement|null>(null)
   const petTypeRef = useRef<HTMLSelectElement|null>(null)
   const checkinRef = useRef<HTMLInputElement|null>(null)
@@ -92,9 +93,36 @@ export default function BoardingPage(){
     if(petTypeRef.current){ petTypeRef.current.value = type; const ev = new Event('change'); petTypeRef.current.dispatchEvent(ev); document.getElementById('boardingForm')?.scrollIntoView({behavior:'smooth'}) }
   }
 
-  function onSubmit(e:React.FormEvent){
+  async function onSubmit(e:React.FormEvent<HTMLFormElement>){
     e.preventDefault()
-    setFormMsg('Frontend converted — backend submission pending. I will wire API later.')
+    const formEl = e.currentTarget
+    setFormStatus('submitting')
+    setFormMsg('')
+
+    const data = new FormData(formEl)
+    const payload = Object.fromEntries(data.entries())
+
+    try{
+      const res = await fetch('/api/boarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const json = await res.json()
+      if(res.ok && json.success){
+        setFormStatus('success')
+        setFormMsg('✅ Booking request submitted! We will call or WhatsApp you to confirm your slot.')
+        formEl.reset()
+        // reset plan dropdown after form reset
+        if(planRef.current){ planRef.current.innerHTML = '<option value="">First select pet type</option>' }
+      } else {
+        setFormStatus('error')
+        setFormMsg(json.error || 'Something went wrong. Please try again.')
+      }
+    }catch(err){
+      setFormStatus('error')
+      setFormMsg('Network error. Please check your connection and try again.')
+    }
   }
 
   return (
@@ -245,11 +273,17 @@ export default function BoardingPage(){
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="submit-btn">Submit Booking Request</button>
+                <button type="submit" className="submit-btn" disabled={formStatus === 'submitting'}>
+                  {formStatus === 'submitting' ? 'Submitting...' : 'Submit Booking Request'}
+                </button>
                 <a href="https://wa.me/918828719786" target="_blank" className="ghost-btn">WhatsApp Us</a>
               </div>
 
-              <div className="form-msg" id="formMsg">{formMsg}</div>
+              {formMsg && (
+                <div className="form-msg" id="formMsg" style={{ color: formStatus === 'success' ? '#16a34a' : formStatus === 'error' ? '#dc2626' : 'inherit', fontWeight: 500, marginTop: '12px' }}>
+                  {formMsg}
+                </div>
+              )}
             </form>
           </div>
 
