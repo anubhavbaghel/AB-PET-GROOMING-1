@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection } from 'mongodb'
+import { MongoClient, Db, Collection, Document } from 'mongodb'
 
 declare global {
   // reuse across lambda/container warm instances
@@ -27,22 +27,22 @@ export async function getDb(): Promise<Db> {
   return client.db(MONGO_DB)
 }
 
-export async function getCollection<T = any>(name: string): Promise<Collection<T>> {
-  const db = await getDb()
-  return db.collection<T>(name)
+export async function getCollection<T extends Document = any>(name: string): Promise<Collection<T>> {
+  const db = await getDb();
+  return db.collection<T>(name);
 }
 
-export async function insertOne<T = any>(name: string, doc: T) {
-  const col = await getCollection<T>(name)
-  return col.insertOne(doc)
+export async function insertOne<T extends Document = any>(name: string, doc: any) {
+  const col = await getCollection<T>(name);
+  return col.insertOne(doc);
 }
 
-export async function insertMany<T = any>(name: string, docs: T[]) {
-  const col = await getCollection<T>(name)
-  return col.insertMany(docs)
+export async function insertMany<T extends Document = any>(name: string, docs: any[]) {
+  const col = await getCollection<T>(name);
+  return col.insertMany(docs);
 }
 
-export async function find<T = any>(name: string, query: any, options?: any) {
+export async function find<T extends Document = any>(name: string, query: any, options?: any) {
   const col = await getCollection<T>(name)
   return col.find(query, options).toArray()
 }

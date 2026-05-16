@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "migrate:to-mongo": "node scripts/migrate-to-mongo.js",
     "lint": "next lint"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.10.0",
     "chart.js": "^4.5.1",
+    "mongodb": "^5.9.2",
     "mysql2": "^3.22.3",
-    "bcryptjs": "^2.4.3",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

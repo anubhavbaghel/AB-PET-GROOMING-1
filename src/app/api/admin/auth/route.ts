@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import mongo from '@/lib/mongo'
-import { looksLikeBcryptHash as _looksLike } from '@/lib/api'
 
 function looksLikeBcryptHash(s: string) {
-  return _looksLike ? _looksLike(s) : (typeof s === 'string' && s.startsWith('$2'))
+  return typeof s === 'string' && s.startsWith('$2')
 }
 
 export async function POST(req: Request) {
