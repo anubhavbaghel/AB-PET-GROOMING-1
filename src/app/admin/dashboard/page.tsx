@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { createConnection } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import DashboardCharts from '@/components/admin/DashboardCharts';
 
 const DB_HOST = process.env.DB_HOST || 'localhost';
@@ -27,86 +27,84 @@ export default async function DashboardPage() {
     redirect('/admin-login');
   }
 
-  const APPOINTMENTS_TABLE = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
-  let conn: any = null;
+  const today = new Date();
   try {
-    conn = await createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME });
+    const col = await mongo.getCollection('appointments')
     // Basic aggregates
-    const [[{ cnt: total_appointments }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE}`);
-    const today = new Date();
-    const todayStr = isoDate(today);
-    const [[{ cnt: today_appointments }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date = ?`, [todayStr]);
-    const [[{ cnt: upcoming }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ?`, [todayStr]);
-    const [[{ cnt: total_customers }]] = await conn.query(`SELECT COUNT(DISTINCT phone) as cnt FROM ${APPOINTMENTS_TABLE}`);
+    const total_appointments = await col.countDocuments({})
+    const todayStr = isoDate(today)
+    const today_appointments = await col.countDocuments({ appointment_date: todayStr })
+    const upcoming = await col.countDocuments({ appointment_date: { $gte: todayStr } })
+    const total_customersAgg = await col.aggregate([
+      { $group: { _id: '$phone' } },
+      { $group: { _id: null, cnt: { $sum: 1 } } }
+    ]).toArray()
+    const total_customers = (total_customersAgg[0] && total_customersAgg[0].cnt) || 0
 
-    const [[{ cnt: dogs }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE pet_category = 'Dog'`);
-    const [[{ cnt: cats }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE pet_category = 'Cat'`);
-    const [[{ cnt: classic }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE main_service LIKE '%Classic%'`);
-    const [[{ cnt: addons }]] = await conn.query(`SELECT COUNT(id) as cnt FROM ${APPOINTMENTS_TABLE} WHERE addons != '' AND addons IS NOT NULL`);
+    const dogs = await col.countDocuments({ pet_category: { $in: ['Dog', 'dog', 'DOG'] } })
+    const cats = await col.countDocuments({ pet_category: { $in: ['Cat', 'cat', 'CAT'] } })
+    const classic = await col.countDocuments({ main_service: { $regex: 'Classic', $options: 'i' } })
+    const addons = await col.countDocuments({ addons: { $exists: true, $ne: '' } })
 
     // Recent appointments
-    const [recentRows] = await conn.query(`SELECT id, owner_name, phone, pet_name, breed, pet_category, main_service, addons, appointment_date, appointment_time FROM ${APPOINTMENTS_TABLE} ORDER BY id DESC LIMIT 5`);
+    const recentRows = await col.find({}, { sort: { id: -1 }, limit: 5 }).toArray()
 
-    // Time-series: last 28 days (for weekly/last-4-weeks) and last 7 days (for daily)
-    const start28 = new Date(today);
-    start28.setDate(start28.getDate() - 27);
-    const start28Str = isoDate(start28);
+    // Time-series: last 28 days
+    const start28 = new Date(today)
+    start28.setDate(start28.getDate() - 27)
+    const start28Str = isoDate(start28)
+    const dailyAgg = await col.aggregate([
+      { $match: { appointment_date: { $gte: start28Str } } },
+      { $group: { _id: '$appointment_date', cnt: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]).toArray()
+    const dailyMap = new Map<string, number>()
+    dailyAgg.forEach((r: any) => dailyMap.set(String(r._id), Number(r.cnt)))
 
-    const [dailyRows] = await conn.query(`SELECT appointment_date as d, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY appointment_date ORDER BY appointment_date`, [start28Str]);
-    const dailyMap = new Map<string, number>();
-    (dailyRows as any[]).forEach((r: any) => {
-      const d = r.d instanceof Date ? isoDate(r.d) : String(r.d).slice(0, 10);
-      dailyMap.set(d, Number(r.cnt));
-    });
-
-    // Build last 7 days arrays
-    const dailyLabels: string[] = [];
-    const dailyCounts: number[] = [];
+    const dailyLabels: string[] = []
+    const dailyCounts: number[] = []
     for (let i = 6; i >= 0; i--) {
-      const dt = new Date(today);
-      dt.setDate(dt.getDate() - i);
-      const s = isoDate(dt);
-      dailyLabels.push(dt.toLocaleDateString(undefined, { weekday: 'short' }));
-      dailyCounts.push(dailyMap.get(s) || 0);
+      const dt = new Date(today)
+      dt.setDate(dt.getDate() - i)
+      const s = isoDate(dt)
+      dailyLabels.push(dt.toLocaleDateString(undefined, { weekday: 'short' }))
+      dailyCounts.push(dailyMap.get(s) || 0)
     }
 
-    // Build last 4 weeks from start28 (4 buckets of 7 days)
-    const weeklyLabels: string[] = [];
-    const weeklyCounts: number[] = [];
+    // Weekly buckets (4 weeks)
+    const weeklyLabels: string[] = []
+    const weeklyCounts: number[] = []
     for (let w = 0; w < 4; w++) {
-      const wkStart = new Date(start28);
-      wkStart.setDate(start28.getDate() + w * 7);
-      const wkEnd = new Date(wkStart);
-      wkEnd.setDate(wkStart.getDate() + 6);
-      let sum = 0;
+      const wkStart = new Date(start28)
+      wkStart.setDate(start28.getDate() + w * 7)
+      const wkEnd = new Date(wkStart)
+      wkEnd.setDate(wkStart.getDate() + 6)
+      let sum = 0
       for (let d = new Date(wkStart); d <= wkEnd; d.setDate(d.getDate() + 1)) {
-        sum += dailyMap.get(isoDate(d)) || 0;
+        sum += dailyMap.get(isoDate(d)) || 0
       }
-      weeklyLabels.push(wkStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
-      weeklyCounts.push(sum);
+      weeklyLabels.push(wkStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
+      weeklyCounts.push(sum)
     }
 
     // Monthly: last 6 months
-    const startMonth = new Date(today.getFullYear(), today.getMonth() - 5, 1);
-    const startMonthStr = isoDate(startMonth);
-    let monthlyRows: any[] = [];
-    if (process.env.DB_CLIENT === 'sqlite') {
-      const res = await conn.query(`SELECT strftime('%Y-%m', appointment_date) as ym, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY ym ORDER BY ym`, [startMonthStr]);
-      monthlyRows = res[0] as any[]
-    } else {
-      const res = await conn.query(`SELECT DATE_FORMAT(appointment_date, '%Y-%m') as ym, COUNT(*) as cnt FROM ${APPOINTMENTS_TABLE} WHERE appointment_date >= ? GROUP BY ym ORDER BY ym`, [startMonthStr]);
-      monthlyRows = res[0] as any[]
-    }
-    const monthlyMap = new Map<string, number>();
-    (monthlyRows as any[]).forEach((r: any) => monthlyMap.set(String(r.ym), Number(r.cnt)));
+    const startMonth = new Date(today.getFullYear(), today.getMonth() - 5, 1)
+    const startMonthStr = isoDate(startMonth)
+    const monthlyAgg = await col.aggregate([
+      { $match: { appointment_date: { $gte: startMonthStr } } },
+      { $group: { _id: { $substr: ['$appointment_date', 0, 7] }, cnt: { $sum: 1 } } },
+      { $sort: { '_id': 1 } }
+    ]).toArray()
+    const monthlyMap = new Map<string, number>()
+    monthlyAgg.forEach((r: any) => monthlyMap.set(String(r._id), Number(r.cnt)))
 
-    const monthlyLabels: string[] = [];
-    const monthlyCounts: number[] = [];
+    const monthlyLabels: string[] = []
+    const monthlyCounts: number[] = []
     for (let m = 0; m < 6; m++) {
-      const dt = new Date(startMonth.getFullYear(), startMonth.getMonth() + m, 1);
-      const key = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
-      monthlyLabels.push(dt.toLocaleString(undefined, { month: 'short' }));
-      monthlyCounts.push(monthlyMap.get(key) || 0);
+      const dt = new Date(startMonth.getFullYear(), startMonth.getMonth() + m, 1)
+      const key = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0')
+      monthlyLabels.push(dt.toLocaleString(undefined, { month: 'short' }))
+      monthlyCounts.push(monthlyMap.get(key) || 0)
     }
 
     return (
@@ -230,11 +228,9 @@ export default async function DashboardPage() {
         <h1>Dashboard</h1>
         <div style={{ marginTop: 16, padding: 16, borderRadius: 8, background: '#fff3f3', color: '#8a1f1f' }}>
           <strong>Cannot connect to the database.</strong>
-          <div style={{ marginTop: 8 }}>Start your MySQL server (service name may be <code>MySQL80</code>) or set the correct DB environment variables.</div>
+          <div style={{ marginTop: 8 }}>Start your database or set the correct DB environment variables.</div>
         </div>
       </div>
     );
-  } finally {
-    if (conn) await conn.end();
   }
 }

@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server'
-import { createPool } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
+import { ObjectId } from 'mongodb'
 
-const pool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-})
+const APPOINTMENTS_COLLECTION = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
 
-const APPOINTMENTS_TABLE = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
-
-function extractRows(result: any) {
-  return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
+function makeIdFilter(id: any) {
+  const s = String(id || '')
+  if (!s) return null
+  if (/^\d+$/.test(s)) return { id: Number(s) }
+  if (ObjectId.isValid(s)) return { _id: new ObjectId(s) }
+  return { id: s }
 }
 
 export async function GET(req: Request) {
@@ -27,44 +25,27 @@ export async function GET(req: Request) {
     const page = Number(url.searchParams.get('page') || '1') || 1
     const perPage = Number(url.searchParams.get('perPage') || '15') || 15
 
-    const where: string[] = []
-    const params: any[] = []
-
+    const filter: any = {}
     if (search) {
-      where.push("(owner_name LIKE ? OR phone LIKE ? OR pet_name LIKE ? OR id LIKE ?)")
-      const s = `%${search}%`
-      params.push(s, s, s, s)
+      filter.$or = [
+        { owner_name: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { pet_name: { $regex: search, $options: 'i' } },
+        { id: search },
+      ]
     }
-    if (pet_type) {
-      where.push('pet_category = ?')
-      params.push(pet_type)
-    }
-    if (date_from) {
-      where.push('appointment_date >= ?')
-      params.push(date_from)
-    }
-    if (date_to) {
-      where.push('appointment_date <= ?')
-      params.push(date_to)
+    if (pet_type) filter.pet_category = pet_type
+    if (date_from || date_to) {
+      filter.appointment_date = {}
+      if (date_from) filter.appointment_date.$gte = date_from
+      if (date_to) filter.appointment_date.$lte = date_to
     }
 
-    const whereClause = where.length ? ' WHERE ' + where.join(' AND ') : ''
-
-    // Count
-    const countResult = await pool.query(`SELECT COUNT(*) as total FROM ${APPOINTMENTS_TABLE} ${whereClause}`, params)
-    const countRows = extractRows(countResult) || []
-    let total = 0
-    if (Array.isArray(countRows) && countRows.length > 0) {
-      const first = countRows[0]
-      total = Number(first.total ?? first.cnt ?? Object.values(first)[0] ?? 0)
-    }
-
-    const offset = (page - 1) * perPage
-    const qParams = params.concat([offset, perPage])
-    const dataResult = await pool.query(`SELECT * FROM ${APPOINTMENTS_TABLE} ${whereClause} ORDER BY id DESC LIMIT ?, ?`, qParams)
-    const rows = extractRows(dataResult) || []
-
-    return NextResponse.json({ data: rows, total, page, perPage })
+    const col = await mongo.getCollection(APPOINTMENTS_COLLECTION)
+    const total = await col.countDocuments(filter)
+    const rows = await col.find(filter, { sort: { id: -1 }, skip: (page - 1) * perPage, limit: perPage }).toArray()
+    const out = rows.map((r: any) => ({ ...r, id: r.id ?? (r._id ? String(r._id) : undefined) }))
+    return NextResponse.json({ data: out, total, page, perPage })
   } catch (err) {
     console.error('GET /api/admin/appointments error', err)
     return NextResponse.json({ error: 'db_error' }, { status: 500 })
@@ -76,10 +57,12 @@ export async function DELETE(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const id = Number(url.searchParams.get('id'))
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const idParam = url.searchParams.get('id')
+    const filter = makeIdFilter(idParam)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
-    await pool.execute(`DELETE FROM ${APPOINTMENTS_TABLE} WHERE id = ?`, [id])
+    const col = await mongo.getCollection(APPOINTMENTS_COLLECTION)
+    await col.deleteOne(filter)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('DELETE /api/admin/appointments error', err)
@@ -92,29 +75,27 @@ export async function PUT(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const idFromQuery = Number(url.searchParams.get('id'))
+    const idFromQuery = url.searchParams.get('id')
     const body = await req.json()
-    const id = Number(body.id || idFromQuery)
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const filter = makeIdFilter(idFromQuery || body.id)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
+    const col = await mongo.getCollection(APPOINTMENTS_COLLECTION)
     // Allow updating status or arbitrary fields (status only for now)
     const status = body.status
     if (status !== undefined) {
-      await pool.execute(`UPDATE ${APPOINTMENTS_TABLE} SET status = ? WHERE id = ?`, [status, id])
+      await col.updateOne(filter, { $set: { status } })
       return NextResponse.json({ success: true })
     }
 
     // If other fields provided, build update
-    const fields: string[] = []
-    const params: any[] = []
+    const toUpdate: any = {}
     for (const k of Object.keys(body)) {
       if (k === 'id') continue
-      fields.push(`${k} = ?`)
-      params.push(body[k])
+      toUpdate[k] = body[k]
     }
-    if (fields.length) {
-      params.push(id)
-      await pool.execute(`UPDATE ${APPOINTMENTS_TABLE} SET ${fields.join(', ')} WHERE id = ?`, params)
+    if (Object.keys(toUpdate).length) {
+      await col.updateOne(filter, { $set: toUpdate })
       return NextResponse.json({ success: true })
     }
 

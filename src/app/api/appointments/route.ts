@@ -1,4 +1,4 @@
-import { createConnection } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { NextResponse } from 'next/server';
 import api from '@/lib/api'
 import { info, error as logError } from '@/lib/logger'
@@ -41,25 +41,26 @@ export async function POST(req: Request) {
       return api.badRequest('owner_name, appointment_date and appointment_time are required')
     }
 
-    const conn = await createConnection(DB)
+    // Use MongoDB for Next.js APIs (appointments collection)
     try {
-      // count bookings for date
-      const [rows] = await conn.execute(`SELECT COUNT(*) as total FROM ${APPOINTMENTS_TABLE} WHERE appointment_date=?`, [appointment_date])
-      const total = (rows as any)[0]?.total || 0
+      const col = await mongo.getCollection('appointments')
+      const total = await col.countDocuments({ appointment_date })
       if (total >= Number(process.env.SLOTS_PER_DAY || 10)) {
         return NextResponse.json({ success: false, full: true }, { status: 400 })
       }
 
-      const sql = `INSERT INTO ${APPOINTMENTS_TABLE} (owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-      const params = [owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count, multi_pet_note, main_service, addons, appointment_date, appointment_time, notes, payment_method, payment_status];
-
-      const [result] = await conn.execute(sql, params)
-      // extract insert id in a DB-agnostic way
-      const insertId = (result && (result as any).insertId) || (Array.isArray(result) && result[0] && (result[0] as any).insertId) || 0
+      const doc = {
+        owner_name, email, phone, pet_name, pet_category, breed, pet_size, pet_count,
+        multi_pet_note, main_service, addons, appointment_date, appointment_time, notes,
+        payment_method, payment_status, created_at: new Date(),
+      }
+      const res = await col.insertOne(doc)
+      const insertId = res.insertedId?.toString()
       info('appointment.created', { owner_name, appointment_date, appointment_time, id: insertId })
       return NextResponse.json({ success: true, id: insertId })
-    } finally {
-      try { await conn.end() } catch (e) { /* ignore */ }
+    } catch (e: any) {
+      logError('mongo insert appointment error', { error: e?.message || e })
+      return api.serverError('Failed to create appointment')
     }
   } catch (err: any) {
     logError('POST /api/appointments error', { error: err?.message || err })

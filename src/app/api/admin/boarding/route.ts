@@ -1,16 +1,14 @@
 import { NextResponse } from 'next/server'
-import { createPool } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
+import { ObjectId } from 'mongodb'
 
-const pool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-})
-
-function extractRows(result: any) {
-  return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
+function makeIdFilter(id: any) {
+  const s = String(id || '')
+  if (!s) return null
+  if (/^\d+$/.test(s)) return { id: Number(s) }
+  if (ObjectId.isValid(s)) return { _id: new ObjectId(s) }
+  return { id: s }
 }
 
 export async function GET(req: Request) {
@@ -22,25 +20,20 @@ export async function GET(req: Request) {
     const status = url.searchParams.get('status') || ''
     const pet_type = url.searchParams.get('pet_type') || ''
 
-    const where: string[] = []
-    const params: any[] = []
+    const filter: any = {}
     if (search) {
-      where.push("(owner_name LIKE ? OR phone LIKE ? OR pet_name LIKE ? OR id LIKE ?)")
-      const s = `%${search}%`
-      params.push(s, s, s, s)
+      filter.$or = [
+        { owner_name: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { pet_name: { $regex: search, $options: 'i' } },
+        { id: search },
+      ]
     }
-    if (status) {
-      where.push('status = ?')
-      params.push(status)
-    }
-    if (pet_type) {
-      where.push('pet_type = ?')
-      params.push(pet_type)
-    }
+    if (status) filter.status = status
+    if (pet_type) filter.pet_type = pet_type
 
-    const whereClause = where.length ? ' WHERE ' + where.join(' AND ') : ''
-    const res = await pool.query(`SELECT * FROM boarding ${whereClause} ORDER BY id DESC`, params)
-    const rows = extractRows(res) || []
+    const col = await mongo.getCollection('boarding')
+    const rows = await col.find(filter, { sort: { id: -1 } }).toArray()
     return NextResponse.json(rows)
   } catch (err) {
     console.error('GET /api/admin/boarding error', err)
@@ -53,9 +46,11 @@ export async function DELETE(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const id = Number(url.searchParams.get('id'))
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
-    await pool.execute('DELETE FROM boarding WHERE id = ?', [id])
+    const idParam = url.searchParams.get('id')
+    const filter = makeIdFilter(idParam)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const col = await mongo.getCollection('boarding')
+    await col.deleteOne(filter)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('DELETE /api/admin/boarding error', err)
@@ -68,27 +63,25 @@ export async function PUT(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const idFromQuery = Number(url.searchParams.get('id'))
+    const idFromQuery = url.searchParams.get('id')
     const body = await req.json()
-    const id = Number(body.id || idFromQuery)
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const filter = makeIdFilter(idFromQuery || body.id)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
+    const col = await mongo.getCollection('boarding')
     const status = body.status
     if (status !== undefined) {
-      await pool.execute('UPDATE boarding SET status = ? WHERE id = ?', [status, id])
+      await col.updateOne(filter, { $set: { status } })
       return NextResponse.json({ success: true })
     }
 
-    const fields: string[] = []
-    const params: any[] = []
+    const toUpdate: any = {}
     for (const k of Object.keys(body)) {
       if (k === 'id') continue
-      fields.push(`${k} = ?`)
-      params.push(body[k])
+      toUpdate[k] = body[k]
     }
-    if (fields.length) {
-      params.push(id)
-      await pool.execute(`UPDATE boarding SET ${fields.join(', ')} WHERE id = ?`, params)
+    if (Object.keys(toUpdate).length) {
+      await col.updateOne(filter, { $set: toUpdate })
       return NextResponse.json({ success: true })
     }
 

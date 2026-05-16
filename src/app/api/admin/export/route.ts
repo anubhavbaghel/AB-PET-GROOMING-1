@@ -1,17 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createPool } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
-
-const pool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-})
-
-function extractRows(result: any) {
-  return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
-}
 
 function escapeCsv(val: any) {
   if (val === null || val === undefined) return ''
@@ -28,11 +17,10 @@ export async function POST(req: Request) {
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const body = await req.json().catch(() => ({}))
     const type = (body.type || 'appointments').toString()
-    const APPOINTMENTS_TABLE = process.env.DB_TABLE_APPOINTMENTS || 'appointments'
 
     if (type === 'appointments') {
-      const res = await pool.query(`SELECT id, owner_name, phone, email, pet_name, pet_category, main_service, addons, appointment_date, appointment_time, notes, created_at FROM ${APPOINTMENTS_TABLE} ORDER BY id ASC`)
-      const rows = extractRows(res) || []
+      const col = await mongo.getCollection('appointments')
+      const rows = await col.find({}, { sort: { id: 1 } }).toArray()
       const headers = ['id','owner_name','phone','email','pet_name','pet_category','main_service','addons','appointment_date','appointment_time','notes','created_at']
       const lines = [headers.join(',')]
       for (const r of rows) lines.push(headers.map(h => escapeCsv(r[h])).join(','))
@@ -42,8 +30,8 @@ export async function POST(req: Request) {
     }
 
     if (type === 'contact_messages') {
-      const res = await pool.query('SELECT id, name, email, phone, subject, message, created_at FROM contact_messages ORDER BY id ASC')
-      const rows = extractRows(res) || []
+      const col = await mongo.getCollection('contact_messages')
+      const rows = await col.find({}, { sort: { id: 1 } }).toArray()
       const headers = ['id','name','email','phone','subject','message','created_at']
       const lines = [headers.join(',')]
       for (const r of rows) lines.push(headers.map(h => escapeCsv(r[h])).join(','))
@@ -53,8 +41,8 @@ export async function POST(req: Request) {
     }
 
     if (type === 'reviews') {
-      const res = await pool.query('SELECT id, customer_id, booking_id, rating, comment, status, created_at FROM reviews ORDER BY id ASC')
-      const rows = extractRows(res) || []
+      const col = await mongo.getCollection('reviews')
+      const rows = await col.find({}, { sort: { id: 1 } }).toArray()
       const headers = ['id','customer_id','booking_id','rating','comment','status','created_at']
       const lines = [headers.join(',')]
       for (const r of rows) lines.push(headers.map(h => escapeCsv(r[h])).join(','))
@@ -64,15 +52,23 @@ export async function POST(req: Request) {
     }
 
     if (type === 'services') {
-      // join service_cards and items
-      const res = await pool.query(`SELECT sc.id as service_id, sc.title, sc.category, sci.id as item_id, sci.type, sci.name, sci.price
-        FROM service_cards sc
-        LEFT JOIN service_card_items sci ON sc.id = sci.service_id
-        ORDER BY sc.id ASC`)
-      const rows = extractRows(res) || []
+      // service_cards + service_card_items stored in Mongo as separate collections
+      const sc = await mongo.getCollection('service_cards')
+      const sci = await mongo.getCollection('service_card_items')
+      const cards = await sc.find({}, { sort: { id: 1 } }).toArray()
+      const lines: string[] = []
       const headers = ['service_id','title','category','item_id','item_type','item_name','item_price']
-      const lines = [headers.join(',')]
-      for (const r of rows) lines.push([r.service_id,r.title,r.category,r.item_id,r.type,r.name,r.price].map(escapeCsv).join(','))
+      lines.push(headers.join(','))
+      for (const c of cards) {
+        const items = await sci.find({ service_id: c.id }).toArray()
+        if (!items || items.length === 0) {
+          lines.push([c.id, c.title, c.category, '', '', '', ''].map(escapeCsv).join(','))
+          continue
+        }
+        for (const it of items) {
+          lines.push([c.id, c.title, c.category, it.id, it.type, it.name, it.price].map(escapeCsv).join(','))
+        }
+      }
       const csv = '\uFEFF' + lines.join('\n')
       const filename = `services_export_${new Date().toISOString().slice(0,10)}.csv`
       return new NextResponse(csv, { status: 200, headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${filename}"` } })

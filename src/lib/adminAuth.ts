@@ -1,4 +1,5 @@
-import { createConnection } from '@/lib/db'
+import mongo from '@/lib/mongo'
+import { ObjectId } from 'mongodb'
 
 const DB_HOST = process.env.DB_HOST || 'localhost'
 const DB_USER = process.env.DB_USER || 'root'
@@ -26,17 +27,21 @@ export async function getAdminFromRequest(req: Request) {
     const cookies = parseCookies(cookieHeader)
     const idStr = cookies['admin_id'] || cookies['adminId'] || cookies['admin-id']
     if (!idStr) return null
-    const id = Number(idStr)
-    if (!id) return null
+    // Build a Mongo filter that supports both numeric legacy ids and ObjectId strings
+    const s = String(idStr)
+    const filters: any[] = []
+    if (/^\d+$/.test(s)) filters.push({ id: Number(s) })
+    if (ObjectId.isValid(s)) filters.push({ _id: new ObjectId(s) })
+    if (filters.length === 0) return null
+    const filter = filters.length === 1 ? filters[0] : { $or: filters }
 
-    const conn = await createConnection({ host: DB_HOST, user: DB_USER, password: DB_PASS, database: DB_NAME })
     try {
-      const res: any = await conn.execute('SELECT id, username FROM admin_users WHERE id = ?', [id])
-      const rows = Array.isArray(res) && Array.isArray(res[0]) ? res[0] : res
-      if (Array.isArray(rows) && rows.length > 0) return rows[0]
+      const col = await mongo.getCollection('admin_users')
+      const admin = await col.findOne(filter, { projection: { id: 1, username: 1 } })
+      return admin || null
+    } catch (e) {
+      console.error('adminAuth.getAdminFromRequest error', e)
       return null
-    } finally {
-      try { await conn.end() } catch (e) { /* ignore */ }
     }
   } catch (e) {
     console.error('adminAuth.getAdminFromRequest error', e)

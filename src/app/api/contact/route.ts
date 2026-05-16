@@ -1,14 +1,7 @@
-import { createConnection } from '@/lib/db'
 import { NextResponse } from 'next/server';
 import api from '@/lib/api'
 import { info, error as logError } from '@/lib/logger'
-
-const DB = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-}
+import mongo from '@/lib/mongo'
 
 export async function POST(req: Request){
   try{
@@ -26,15 +19,10 @@ export async function POST(req: Request){
 
     if (!name || !message) return api.badRequest('name and message are required')
 
-    const conn = await createConnection(DB);
-    try {
-      const sql = `INSERT INTO contact_messages (name,email,phone,subject,message) VALUES (?,?,?,?,?)`;
-      await conn.execute(sql, [name,email,phone,subject,message]);
-      info('contact.created', { name })
-      return NextResponse.json({ success: true });
-    } finally {
-      try { await conn.end() } catch (e) {}
-    }
+    const col = await mongo.getCollection('contact_messages')
+    await col.insertOne({ name, email, phone, subject, message, created_at: new Date() })
+    info('contact.created', { name })
+    return NextResponse.json({ success: true });
   }catch(err:any){
     logError('POST /api/contact error', { error: err?.message || err })
     return api.serverError('Failed to submit contact message')

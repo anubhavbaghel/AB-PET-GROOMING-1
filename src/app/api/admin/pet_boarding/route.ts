@@ -1,24 +1,22 @@
 import { NextResponse } from 'next/server'
-import { createPool } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
+import { ObjectId } from 'mongodb'
 
-const pool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-})
-
-function extractRows(result: any) {
-  return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
+function makeIdFilter(id: any) {
+  const s = String(id || '')
+  if (!s) return null
+  if (/^\d+$/.test(s)) return { id: Number(s) }
+  if (ObjectId.isValid(s)) return { _id: new ObjectId(s) }
+  return { id: s }
 }
 
 export async function GET(req: Request) {
   try {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-    const res = await pool.query('SELECT * FROM pet_boarding ORDER BY id ASC')
-    const rows = extractRows(res) || []
+    const col = await mongo.getCollection('pet_boarding')
+    const rows = await col.find({}, { sort: { id: 1 } }).toArray()
     return NextResponse.json(rows)
   } catch (err) {
     console.error('GET /api/admin/pet_boarding error', err)
@@ -32,11 +30,11 @@ export async function POST(req: Request) {
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const body = await req.json()
     const name = body.name || ''
-    const price = body.price || null
+    const price = body.price == null ? null : body.price
     const type = body.type || ''
-    const res: any = (await pool.execute(`INSERT INTO pet_boarding (name, price, type) VALUES (?, ?, ?)`, [name, price, type]))[0]
-    const insertId = res.insertId ?? res.lastID
-    return NextResponse.json({ success: true, id: insertId })
+    const col = await mongo.getCollection('pet_boarding')
+    const r = await col.insertOne({ name, price, type, created_at: new Date() })
+    return NextResponse.json({ success: true, id: r.insertedId?.toString() })
   } catch (err) {
     console.error('POST /api/admin/pet_boarding error', err)
     return NextResponse.json({ error: 'db_error' }, { status: 500 })
@@ -48,25 +46,21 @@ export async function PUT(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const idFromQuery = Number(url.searchParams.get('id'))
+    const idFromQuery = url.searchParams.get('id')
     const body = await req.json()
-    const id = Number(body.id || idFromQuery)
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const filter = makeIdFilter(idFromQuery || body.id)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
-    const fields: string[] = []
-    const params: any[] = []
+    const toUpdate: any = {}
     for (const k of Object.keys(body)) {
       if (k === 'id') continue
-      fields.push(`${k} = ?`)
-      params.push(body[k])
+      toUpdate[k] = body[k]
     }
-    if (fields.length) {
-      params.push(id)
-      await pool.execute(`UPDATE pet_boarding SET ${fields.join(', ')} WHERE id = ?`, params)
-      return NextResponse.json({ success: true })
-    }
+    if (Object.keys(toUpdate).length === 0) return NextResponse.json({ error: 'no_changes' }, { status: 400 })
 
-    return NextResponse.json({ error: 'no_changes' }, { status: 400 })
+    const col = await mongo.getCollection('pet_boarding')
+    await col.updateOne(filter, { $set: toUpdate })
+    return NextResponse.json({ success: true })
   } catch (err) {
     console.error('PUT /api/admin/pet_boarding error', err)
     return NextResponse.json({ error: 'db_error' }, { status: 500 })
@@ -78,9 +72,11 @@ export async function DELETE(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const id = Number(url.searchParams.get('id'))
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
-    await pool.execute('DELETE FROM pet_boarding WHERE id = ?', [id])
+    const idParam = url.searchParams.get('id')
+    const filter = makeIdFilter(idParam)
+    if (!filter) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const col = await mongo.getCollection('pet_boarding')
+    await col.deleteOne(filter)
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('DELETE /api/admin/pet_boarding error', err)

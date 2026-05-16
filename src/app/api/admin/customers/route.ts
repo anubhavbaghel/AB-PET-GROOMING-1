@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createPool } from '@/lib/db'
+import mongo from '@/lib/mongo'
 import { getAdminFromRequest } from '@/lib/adminAuth'
+import { ObjectId } from 'mongodb'
 
-const pool = createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ab_pet_grooming',
-})
+// admin APIs now operate on MongoDB collections
 
 function extractRows(result: any) {
   return Array.isArray(result) && Array.isArray(result[0]) ? result[0] : result
@@ -28,9 +24,17 @@ export async function GET(req: Request) {
       params.push(s, s, s)
     }
 
-    const whereClause = where.length ? ' WHERE ' + where.join(' AND ') : ''
-    const res = await pool.query(`SELECT * FROM customers ${whereClause} ORDER BY id DESC`, params)
-    const rows = extractRows(res) || []
+    // Build Mongo query
+    const filter: any = {}
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ]
+    }
+    const col = await mongo.getCollection('customers')
+    const rows = await col.find(filter, { sort: { id: -1 } }).toArray()
     return NextResponse.json(rows)
   } catch (err) {
     console.error('GET /api/admin/customers error', err)
@@ -48,9 +52,9 @@ export async function POST(req: Request) {
     const phone = body.phone || ''
     const address = body.address || ''
     const city = body.city || ''
-    const res: any = (await pool.execute(`INSERT INTO customers (name, email, phone, address, city) VALUES (?, ?, ?, ?, ?)`, [name, email, phone, address, city]))[0]
-    const insertId = res.insertId ?? res.lastID ?? 0
-    return NextResponse.json({ success: true, id: insertId })
+    const col = await mongo.getCollection('customers')
+    const r = await col.insertOne({ name, email, phone, address, city, created_at: new Date() })
+    return NextResponse.json({ success: true, id: r.insertedId?.toString() })
   } catch (err) {
     console.error('POST /api/admin/customers error', err)
     return NextResponse.json({ error: 'db_error' }, { status: 500 })
@@ -62,10 +66,10 @@ export async function PUT(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const idFromQuery = Number(url.searchParams.get('id'))
+    const idFromQuery = url.searchParams.get('id') || ''
     const body = await req.json()
-    const id = Number(body.id || idFromQuery)
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const idStr = body.id ? String(body.id) : (idFromQuery || '')
+    if (!idStr) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
 
     const fields: string[] = []
     const params: any[] = []
@@ -75,8 +79,27 @@ export async function PUT(req: Request) {
       params.push(body[k])
     }
     if (fields.length) {
-      params.push(id)
-      await pool.execute(`UPDATE customers SET ${fields.join(', ')} WHERE id = ?`, params)
+      const update: any = {}
+      for (let i = 0; i < fields.length; i++) {
+        // fields array contains strings like "name = ?"; map to body keys directly
+      }
+      // simple approach: apply all body fields except id
+      const toUpdate: any = {}
+      for (const k of Object.keys(body)) {
+        if (k === 'id') continue
+        toUpdate[k] = body[k]
+      }
+      const col = await mongo.getCollection('customers')
+      // support numeric legacy id or ObjectId string
+      let filter: any
+      if (/^\d+$/.test(idStr)) {
+        filter = { id: Number(idStr) }
+      } else if (ObjectId.isValid(idStr)) {
+        filter = { _id: new ObjectId(idStr) }
+      } else {
+        return NextResponse.json({ error: 'invalid_id' }, { status: 400 })
+      }
+      await col.updateOne(filter, { $set: toUpdate })
       return NextResponse.json({ success: true })
     }
     return NextResponse.json({ error: 'no_changes' }, { status: 400 })
@@ -91,9 +114,16 @@ export async function DELETE(req: Request) {
     const admin = await getAdminFromRequest(req)
     if (!admin) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     const url = new URL(req.url)
-    const id = Number(url.searchParams.get('id'))
-    if (!id) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
-    await pool.execute('DELETE FROM customers WHERE id = ?', [id])
+    const idStr = url.searchParams.get('id') || ''
+    if (!idStr) return NextResponse.json({ error: 'missing_id' }, { status: 400 })
+    const col = await mongo.getCollection('customers')
+    if (/^\d+$/.test(idStr)) {
+      await col.deleteOne({ id: Number(idStr) })
+    } else if (ObjectId.isValid(idStr)) {
+      await col.deleteOne({ _id: new ObjectId(idStr) })
+    } else {
+      return NextResponse.json({ error: 'invalid_id' }, { status: 400 })
+    }
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('DELETE /api/admin/customers error', err)
