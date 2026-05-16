@@ -69,13 +69,6 @@ export async function PUT(req: Request) {
   }
 }
 
-    return NextResponse.json({ error: 'missing_status' }, { status: 400 })
-  } catch (err) {
-    console.error('PUT /api/admin/reviews error', err)
-    return NextResponse.json({ error: 'db_error' }, { status: 500 })
-  }
-}
-
 export async function DELETE(req: Request) {
   try {
     const admin = await getAdminFromRequest(req)
