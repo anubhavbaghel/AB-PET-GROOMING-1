@@ -496,7 +496,7 @@
 
 body{
   background:#f6f4ff;
-  font-family:'Poppins', sans-serif;
+  font-family: inherit; /* inherit global app font (Nunito) */
 }
 
 /* FORM CARD */

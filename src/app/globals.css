@@ -5,7 +5,16 @@
   --accent:#ff6b6b;
 }
 html,body,#root{height:100%;}
-body{margin:0;font-family:Poppins,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--fg);} 
+/* Prevent accidental horizontal page overflow on small screens (mobile).
+   Many decorative elements are positioned off-canvas; hiding horizontal
+   overflow at the root prevents a persistent horizontal scrollbar while
+   keeping inner horizontal scrollers functional (they use overflow-x:auto).
+*/
+@media (max-width: 900px) {
+  html, body { overflow-x: hidden; }
+}
+/* Use Nunito as the primary body font. Headings use Quicksand via layout.tsx */
+body{margin:0;font-family:'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;background:var(--bg);color:var(--fg);} 
 main{min-height:60vh;padding:1rem}
 
 /* ================= GLOBAL ================= */
@@ -13,7 +22,6 @@ main{min-height:60vh;padding:1rem}
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
 }
 
 body {
@@ -390,6 +398,11 @@ a {
   letter-spacing: -0.7px;
   margin-bottom: 8px;
   color: #201136;
+}
+
+/* Headings should use Quicksand (loaded in layout.tsx). Fall back to inherit for safety. */
+h1,h2,h3,h4,h5,h6,.h2 {
+  font-family: 'Quicksand', inherit;
 }
 
 .subtext {
@@ -2144,7 +2157,8 @@ a {
   background: #25183d;
   color: #e1d5ff;
   padding: 60px 0 20px;
-  font-family: 'Poppins', sans-serif;
+  /* inherit the page font so the footer follows global typography */
+  font-family: inherit;
   border-top: 4px solid #7158a6;
 }
 

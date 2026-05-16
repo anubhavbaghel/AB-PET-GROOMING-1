@@ -13,13 +13,17 @@ export default function Header() {
   }, [pathname])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    // Lock vertical scrolling when the mobile nav is open but do not modify
+    // horizontal overflow so global CSS can control page overflow-x.
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflowY = 'hidden'
     } else {
-      document.body.style.overflow = 'unset'
+      // Clear the inline override so CSS rules (eg. overflow-x) remain effective
+      document.body.style.overflowY = ''
     }
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflowY = ''
     }
   }, [isOpen])
 
